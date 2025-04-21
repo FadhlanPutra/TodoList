@@ -21,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import tw from "twrnc";
 import Survey from "@/components/Survey";
-import { Fontisto } from "@expo/vector-icons";
+import { Fontisto, Entypo, Foundation } from "@expo/vector-icons";
 
 
 export default function HomeScreen() {
@@ -103,26 +103,26 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-100`}>
-      <View style={tw`bg-yellow-300 w-100% h-20% absolute rounded-b-full items-center justify-center`}></View>
-      <View style={tw`mx-5`}>
+      {/* <View style={tw`bg-yellow-300 w-100% h-20% absolute rounded-b-full items-center justify-center`}></View> */}
+      <View style={tw`mx-5 mt-5`}>
 
-      <Text style={tw`text-xl font-bold mb-4`}>To do List</Text>
+      <Text style={tw`text-xl font-bold mb-4`}><Foundation name="clipboard-notes" size={24}/> nGopoyo</Text>
       <View style={tw`flex-row max-w-full items-center`}>
         <TextInput
           value={task}
           onChangeText={setTask}
           style={tw`border-2 border-gray-500 rounded-lg p-2 w-4/5 text-black`}
-          placeholder="Tambahkan Tugas"
+          placeholder="Mau Ngapain Hari Ini?"
           />
         <TouchableOpacity
-          style={tw`bg-blue-500 p-3 rounded-lg ml-2`}
+          style={tw`bg-[#032A4E] p-3 rounded-lg ml-2`}
           onPress={isEditing ? handleEdit : addTask}>
           <Text style={tw`text-white font-semibold`}>{isEditing ? 'Simpan Edit': 'Tambah'}</Text>
         </TouchableOpacity>
       </View>
 
 
-      <View style={tw`my-5`}>
+      {/* <View style={tw`my-5`}>
         <View style={tw`flex-row items-center gap-5`}>
           <Image source={require('@/assets/images/icon.png')} style={tw`w-20% h-20 rounded-full`} resizeMode="cover" />
           <View style={tw`flex-col justify-center`}>
@@ -130,14 +130,16 @@ export default function HomeScreen() {
             <ThemedText style={tw`text-2xl font-bold`}>Personal</ThemedText>
           </View>
         </View>
-      </View>
+      </View> */}
+
+      <Text style={tw`my-3 font-bold text-lg text-gray-500`}>Todo</Text>
 
       <FlatList
         data={list}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View
-          style={tw`flex-row items-center justify-between bg-white p-2 rounded-lg mb-2`}
+          style={tw`flex-row items-center shadow-lg justify-between bg-white p-2 rounded-lg mb-2`}
           >
             <TouchableOpacity style={tw`flex-row items-center w-80%`} onPress={() => toggleChecked(item.id)}>
               <Checkbox
@@ -155,11 +157,21 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => startEdit(item)} style={tw`mr-3`}>
-                <Text style={tw`text-blue-500 font-bold`}>Edit</Text>
+              <TouchableOpacity onPress={() => startEdit(item)} style={tw`mr-2`}>
+                <Entypo
+                  name="edit"
+                  size={24}
+                  color="white"
+                  style={tw`bg-[#032a4e] p-1 rounded-lg`}
+                />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => deleteTask(item.id)}>
-                <Text style={tw`text-red-500 font-bold`}>Hapus</Text>
+                <Entypo
+                  name="trash"
+                  size={24}
+                  color="white"
+                  style={tw`bg-red-500 p-1 rounded-lg`}
+                />
               </TouchableOpacity>
           </View>
         )}

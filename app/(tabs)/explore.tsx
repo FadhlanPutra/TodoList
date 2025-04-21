@@ -1,13 +1,16 @@
-import { View, Text, TextInput, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Alert } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import tw from 'twrnc';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Entypo } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Checkbox from 'expo-checkbox';
+
 
 const Explore = () => {
+  const [text, setText] = useState(false);
   const [show, setShow] = useState(false);
   const [mapel, setMapel] = useState('');
   const [tugas, setTugas] = useState('');
@@ -24,11 +27,21 @@ const Explore = () => {
   };
 
   const addTask = () => {
-    if (!mapel.trim() || !tugas.trim() || !deadline) {
-      alert('Semua field harus diisi!');
+    if (mapel.trim() === '' && tugas.trim() === '' || !deadline) {
+      Alert.alert('Alamak', 'Semua field harus diisi!');
+      return;
+    }
+    
+    if (mapel.length < 3){
+      Alert.alert('Alamak', 'Minimal 3 huruf mapelnya');
       return;
     }
 
+    if (tugas.length < 3){
+      Alert.alert('Alamak', 'Minimal 3 huruf tugasnya');
+      return;
+    }
+    
     const newTask = {
       id: Date.now().toString(),
       mapel: mapel.trim(),
@@ -59,9 +72,23 @@ const Explore = () => {
     }
   };
 
-  const deleteTask = (id) => {
-    const filtered = list.filter((item) => item.id !== id);
-    setList(filtered);
+  const deleteTask = (id: string) => {
+    Alert.alert('Hapus Tugas', 'Apakah Anda yakin ingin menghapus tugas ini?', [
+      {
+        text: 'Batal',
+        style: 'cancel',
+      },
+      {
+        text: 'Hapus',
+        onPress: () => {
+          const filtered = list.filter((item) => item.id !== id);
+          Alert.alert('Berhasil', 'Berhasil menghapus tugas');
+          setList(filtered);
+        },
+      },
+    ]);
+    // const filtered = list.filter((item) => item.id !== id);
+    // setList(filtered);
   };
 
   const handleEdit = () => {
@@ -96,6 +123,13 @@ const Explore = () => {
     setEditId(null);
   };
 
+  const toggleChecked = (id: string) => {
+    const updatedList = list.map((item) =>
+      item.id === id ? { ...item, isChecked: !item.isChecked } : item
+    );
+    setList(updatedList);
+  };
+
   useEffect(() => {
     loadTask();
   }, []);
@@ -124,19 +158,28 @@ const Explore = () => {
             style={tw`border-2 border-gray-500 rounded-lg p-2 w-full text-black`}
             placeholder="Judul Tugas"
           />
-          <TouchableOpacity onPress={() => setShow(true)} style={tw`border-2 border-gray-500 rounded-lg p-2 w-full`}>
-            <Text style={tw`text-black`}>Deadline: {new Date(deadline).toLocaleDateString()}</Text>
-          </TouchableOpacity>
-          {show && (
-            <DateTimePicker
-              value={deadline}
-              mode="date"
-              display="default"
-              onChange={handleChange}
-            />
-          )}
+          <View style={tw`relative w-full flex-row items-center justify-between `}>
+            <TouchableOpacity style={tw`border-2 border-gray-500 rounded-lg p-2 w-80%`}>
+              <Text style={tw`text-black`}>Deadline: {new Date(deadline).toLocaleDateString()}</Text>
+            </TouchableOpacity>
+              <AntDesign
+              onPress={() => setShow(true)}
+              name="calendar"
+              size={24}
+              color="white"
+              style={tw`absolute right-2 bg-[#032a4e] rounded-lg p-2`}
+              />
+              {show && (
+                <DateTimePicker
+                  value={deadline}
+                  mode="date"
+                  display="default"
+                  onChange={handleChange}
+                />
+              )}
+          </View>
           <TouchableOpacity
-            style={tw`bg-blue-500 p-3 rounded-lg mb-5`}
+            style={tw`bg-[#032a4e] p-3 rounded-lg mb-5`}
             onPress={isEditing ? handleEdit : addTask}
           >
             <Text style={tw`text-white font-semibold text-center`}>
@@ -145,33 +188,61 @@ const Explore = () => {
           </TouchableOpacity>
         </View>
 
+        <Text style={[tw`my-2 text-gray-500 font-bold text-lg`, list.length > 0 ? null : tw`text-center`]}>{list.length > 0 ? 'Ada tugas ni kamu' : 'Yeay gak ada tugas'}</Text>
+
         <FlatList
           data={list}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={tw`flex-row items-center justify-between bg-white p-2 rounded-lg mb-2`}>
-              <View style={tw`flex-col gap-3`}>
+            <View style={tw`flex-row items-center justify-between bg-white p-2 rounded-lg mb-2 shadow-lg`}>
+              <View style={tw`flex-1`}>
+            <TouchableOpacity style={tw`flex-row items-center w-full`} onPress={() => toggleChecked(item.id)}>
+              <Checkbox
+                value={item.isChecked}
+                onValueChange={() => toggleChecked(item.id)}
+                color={item.isChecked ? "#4630EB" : undefined}
+                />
+              <Text
+                style={[
+                  tw`ml-4`,
+                  item.isChecked ? tw`line-through text-gray-500` : tw`text-black`,
+                ]}
+                >
                 <Text style={tw`ml-4 text-black`}>
-                  <Text style={tw`font-bold text-xl`}>{item.mapel}</Text>
+                  <Text style={[item.isChecked ? tw`line-through text-gray-400 font-bold text-xl` : tw`font-bold text-xl`]}>{item.mapel}</Text>
                   {'\n'}
-                  <Text style={tw`text-md text-gray text-md`}>📚{item.tugas}</Text>
+                  <Text style={[item.isChecked ? tw`line-through text-gray-400 text-lg` : tw`text-gray-500 text-lg`]}>{item.tugas}</Text>
                   {'\n'}
-                  <Text style={tw`text-md text-gray text-ld`}>
-                    📅Deadline: {new Date(item.deadline).toLocaleDateString()}
+                  <Text style={[item.isChecked ? tw`line-through text-gray-400 font-bold text-lg` : tw`font-bold text-lg text-red-500`]}>
+                    {new Date(item.deadline).toLocaleDateString()}
                   </Text>
                 </Text>
-                <View style={tw`flex-row ml-3`}>
-                  <TouchableOpacity onPress={() => startEdit(item)} style={tw`mr-3`}>
-                    <Text style={tw`bg-yellow-400 p-2 rounded-lg px-2 text-black font-bold text-lg`}> Edit </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => deleteTask(item.id)}>
-                    <Text style={tw`bg-red-500 p-2 rounded-lg px-2 text-white font-bold text-lg`}>Hapus</Text>
-                  </TouchableOpacity>
-                </View>
+              </Text>
+            </TouchableOpacity>
+              </View>
+          
+              <View style={tw`flex-row gap-3 items-center ml-auto`}>
+                <TouchableOpacity onPress={() => startEdit(item)} style={tw`mr-2`}>
+                  <Entypo
+                    name="edit"
+                    size={24}
+                    color="white"
+                    style={tw`bg-[#032a4e] p-2 rounded-lg`}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteTask(item.id)}>
+                  <Entypo
+                    name="trash"
+                    size={24}
+                    color="white"
+                    style={tw`bg-red-500 p-2 rounded-lg`}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
           )}
         />
+
       </SafeAreaView>
     </GestureHandlerRootView>
   );
